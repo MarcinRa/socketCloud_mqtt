@@ -7,13 +7,32 @@
   <h3 class="text-muted">socAng</h3>
 </div>
 
+
+
 <div class="jumbotron" ng-controller="SocketflowCtrl">
-    <div class="row">
+       <div class="row">
         <div class="col-xs-offset-2 col-xs-3">
+        <div ng-show=login_board>
+            <label for="user">User:</label>
+            <input class="form-control" id="user" type="text" ng-model="user">
+            <label for="user">Password:</label>
+            <input class="form-control" id="user" type="password" ng-model="password">
+            <button  class="btn btn-primary btn-lg btn-block" ng-click="login(user,password)">Login</button>
+            <button  class="btn btn-primary btn-lg btn-block" ng-click="register(user,password)">Register</button>
+        </div>
+        <div ng-hide=login_board>
+                <label for="user">User loged in:</label>
+                <input class="form-control" id="user" type="text" ng-model="user" disabled>
+                <button  class="btn btn-primary btn-lg btn-block" ng-click="logout()">Logout</button>
+        </div>
+
             <label>Message :</label>
             <input class="form-control" type="text" ng-model="msg"></input>
+            <label>Channel :</label>
+            <input class="form-control" type="text" ng-model="channel"></input>
+            <label></label>
             <button class="btn btn-primary btn-lg btn-block" ng-click="sendToAll(msg)">Send to all</button>
-            <button class="btn btn-primary btn-lg btn-block" ng-click="sendToSocket(socket)">Send to socket</button>
+            <button class="btn btn-primary btn-lg btn-block" ng-click="sendToSocket(channel,msg)">Send to socket</button>
             <label>Socket ID:</label>
             <input class="form-control" type="text" ng-model="socket_nr" disabled></input>
         </div>
