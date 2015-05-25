@@ -13,11 +13,24 @@ angular.module('socAngApp')
         goToLoginScreen $scope
         return
     
+    Scloud.on 'update_username', (data,resp) ->
+        console.log 'update_username -> ' + data.username
+        credentials = {username:data.username}
+        $scope.user = data.username
+        Scloud.onChannel data.username, $scope.showDataInChatBox
+        $scope.$apply()
+        resp()
+        return
+    
     Scloud.on 'status', (status) ->
         console.log "status!!"
         console.log status
         
         if status.isAuthenticated 
+            Scloud.emit 'am_I_registered', undefined, (err) ->
+                if err
+                    alert err
+                return
             goToMainScreen $scope
         else
             if credentials == undefined
@@ -58,11 +71,7 @@ angular.module('socAngApp')
           if err
             alert err
           else
-            Scloud.onChannel user, (data) ->
-                $scope.socketLog += ""+data.username+" : "+data.message+"\n" 
-                refreshScroll(myEl)
-                $scope.$apply()
-                return
+            Scloud.onChannel user, $scope.showDataInChatBox
             goToMainScreen $scope
           return
         return
@@ -94,7 +103,11 @@ angular.module('socAngApp')
                 return
         return
     
-    
+    $scope.showDataInChatBox = (data) ->
+        $scope.socketLog += ""+data.username+" : "+data.message+"\n" 
+        refreshScroll(myEl)
+        $scope.$apply()
+        return
     
     $scope.sendToSocket = (channel,msg) ->
         Scloud.publish channel, { 

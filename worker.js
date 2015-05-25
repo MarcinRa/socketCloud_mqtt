@@ -119,6 +119,24 @@ module.exports.run = function (worker) {
             respond();
         });
         
+        socket.on('am_I_registered',function (data, respond) {
+            console.log("WORKER am_I_registered");
+            var authToken = socket.getAuthToken();
+            console.log("username:  " +authToken.username);
+            console.log("        ");
+            if( authToken.username != undefined ){
+                respond();
+                socket.emit('update_username',{username:authToken.username},function(err){
+                    if (err) {
+                        console.log("XXX - "+ err);
+                      } else {
+                        
+                      }
+                });}
+            else
+                respond("No registered user !!");
+        });
+        
         socket.on('disconnect', function () {
             //socket.removeAuthToken();
             console.log("disconnection");
