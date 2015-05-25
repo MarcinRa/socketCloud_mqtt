@@ -4,10 +4,10 @@ angular.module('socAngApp')
   .service 'Scloud', ($q) ->
       
       self = this
-      self.socket = socketCluster.connect 
-              hostname: 'localhost'
-              secure: false
-              port: 8000
+      self.socket = socketCluster.connect() 
+#              hostname: 'localhost'
+#              secure: false
+#              port: 8000
             
 #      self.socket.on 'error', (err)-> 
 #        throw 'Socket error - ' + err
