@@ -11,12 +11,12 @@ module.exports.run = function (store) {
     //####################################################
     store.on('subscribe',function(topic,message ){
         console.log('--STORE subscribe : ' + topic);
-        console.log("        ");
+        console.log("");
     });
     
     store.on('unsubscribe',function(topic,message){
         console.log('--STORE unsubscribe : ' + topic);
-        console.log("        ");
+        console.log("");
     });
     
     store.on('publish',function(topic,message){
@@ -25,7 +25,9 @@ module.exports.run = function (store) {
             {   "topic":topic, 
                 "message":message
             } ));
-        console.log("        ");
+        console.log("");
+        
+        // TODO: encrypt json before send node-rsa
         client.publish("SERVER_B",JSON.stringify(
             {   "topic":topic, 
                 "message":message
@@ -38,6 +40,7 @@ module.exports.run = function (store) {
       console.log("MQTT STORE MESSAGE ");
       console.log( message_object );
       console.log("        ");
+      // TODO: decrypt string befor parse node-rsa
       var message_object = JSON.parse(message);
         
       if('login_pass' == message_object.topic){

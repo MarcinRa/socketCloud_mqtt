@@ -12,6 +12,7 @@ module.exports.run = function (worker) {
   
   // Get a reference to our raw Node HTTP server
   var httpServer = worker.getHTTPServer();
+    
   // Get a reference to our realtime SocketCluster server
   var scServer = worker.getSCServer();
   
@@ -29,7 +30,7 @@ module.exports.run = function (worker) {
     else
         db = levelup('./mydb2');
     
-//  database insert and check existans functions
+//  database functions
     
     var addUserToDatabase = function(data){
         if(data!==undefined && data.username!==undefined && data.password!=undefined){
@@ -77,24 +78,16 @@ module.exports.run = function (worker) {
     var ligin_rec = scServer.global.subscribe('login_rec');
     ligin_rec.watch(addUserToDatabase);
     
-/*
-    In here we handle our incoming realtime 
-    connections and listen for events.
-  */
+
+//    In here we handle our incoming realtime 
+//    connections and listen for events.
+
     
     scServer.on('connection', function (socket) {
-    
-        socket.on('log_list', function (data,respond) {
-          console.log( "odebrane przez worker ");
-          console.log('log_list', data);
-          console.log("        ");
-          respond();
-//          scServer.global.publish('log_list', data);
-        });
         
         socket.on('login', function (credentials, respond) {
             console.log("WORKER on login"); 
-            console.log("        ");
+            console.log("");
             isUserRegistered(credentials,function(isRegistered){
                 if (isRegistered) {
                       respond();
@@ -113,24 +106,23 @@ module.exports.run = function (worker) {
         
         socket.on('register', function (credentials, respond) {
             console.log("WORKER on register"); 
-            console.log("        ");
+            console.log("");
             addUserToDatabase(credentials);
             scServer.global.publish('login_pass', credentials);
+            socket.setAuthToken({username: credentials.username, channels: ['log_list']});
             respond();
         });
         
-        socket.on('am_I_registered',function (data, respond) {
-            console.log("WORKER am_I_registered");
+        socket.on('who_am_I',function (data, respond) {
+            console.log("WORKER who_am_I");
             var authToken = socket.getAuthToken();
-            console.log("username:  " +authToken.username);
-            console.log("        ");
             if( authToken.username != undefined ){
                 respond();
                 socket.emit('update_username',{username:authToken.username},function(err){
                     if (err) {
-                        console.log("XXX - "+ err);
+                        console.log(err);
                       } else {
-                        
+                        //pass
                       }
                 });}
             else
@@ -142,21 +134,9 @@ module.exports.run = function (worker) {
             console.log("disconnection");
         });
   });
-  
-//    Middlewares section
     
-//  scServer.addMiddleware(scServer.MIDDLEWARE_HANDSHAKE,
-//      function (req, next) {
-//        console.log('WORKER MIDDLEWARE_HANDSHAKE');
-//        console.log(req);
-//      
-//       if (1==1) {
-//          next() // Allow
-//        } else {
-//          next('Handshake failed'); // Block
-//        }
-//      }
-//  );
+    
+//  Middleware set
     
   scServer.addMiddleware(scServer.MIDDLEWARE_EMIT,
       function (socket, event, data, next) {
@@ -164,7 +144,7 @@ module.exports.run = function (worker) {
         console.log('WORKER MIDDLEWARE_EMIT');
         console.log(event);
         console.log(data);
-        console.log("        ");
+        console.log("");
         // ...
         if (1==1) {
           next() // Allow
@@ -174,23 +154,7 @@ module.exports.run = function (worker) {
       }
     );
     
-//  scServer.addMiddleware(scServer.MIDDLEWARE_SUBSCRIBE,
-//      function (socket, channel, next) {
-//        console.log('WORKER MIDDLEWARE_SUBSCRIBE');
-//        console.log(channel);
-//        
-//        var authToken = socket.getAuthToken();
-//        console.log('authToken');
-//        console.log(authToken.username);
-//      
-//        if (authToken.username == channel) {
-//          next() // Allow
-//        } else {
-//          next(socket.id + ' is not allowed to subscribe to channel ' + channel); // Block
-//        }
-//      }
-//    );
-    
+
     scServer.addMiddleware(scServer.MIDDLEWARE_PUBLISH, 
       function (socket, channel, data, next) {
           var authToken = socket.getAuthToken();
@@ -200,7 +164,7 @@ module.exports.run = function (worker) {
               console.log('channel list: ' + authToken.channels.toString());
               console.log(data);
               data['username'] = authToken.username;
-              console.log("        ");
+              console.log("");
               next();
           } else {
             next('You are not authorized to publish to ' + channel);

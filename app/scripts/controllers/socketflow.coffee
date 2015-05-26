@@ -9,12 +9,12 @@ angular.module('socAngApp')
     
     
     Scloud.on 'error', (err)->
-        console.log 'open ligin screen '+err
+        console.log err
         goToLoginScreen $scope
         return
     
     Scloud.on 'update_username', (data,resp) ->
-        console.log 'update_username -> ' + data.username
+        console.log 'update_username:  ' + data.username
         credentials = {username:data.username}
         $scope.user = data.username
         Scloud.onChannel data.username, $scope.showDataInChatBox
@@ -23,11 +23,10 @@ angular.module('socAngApp')
         return
     
     Scloud.on 'status', (status) ->
-        console.log "status!!"
         console.log status
         
         if status.isAuthenticated 
-            Scloud.emit 'am_I_registered', undefined, (err) ->
+            Scloud.emit 'who_am_I', undefined, (err) ->
                 if err
                     alert err
                 return
@@ -44,12 +43,19 @@ angular.module('socAngApp')
                 goToLoginScreen $scope
         return
     
+    Scloud.onChannel 'log_list', (data)->
+        $scope.socketLog += ""+data.username+" : "+data.message+"\n" 
+        refreshScroll(myEl)
+        $scope.$apply()
+        return 
+    
+    
     $scope.logout = ->
         Scloud.emit 'logout', {}, (err) ->
+          credentials = undefined
           if err
             alert err
           else
-            console.log('you are log out');
             goToLoginScreen $scope
           return  
         return
@@ -60,7 +66,8 @@ angular.module('socAngApp')
           if err
             alert err
           else
-            $scope.login(user,password);
+            Scloud.onChannel user, $scope.showDataInChatBox
+            goToMainScreen $scope
           return
         return
         
@@ -78,18 +85,8 @@ angular.module('socAngApp')
     
     Scloud.getIdCb (id)->
         $scope.socket_nr = id
-        
-    
-    Scloud.onChannel 'log_list', (data)->
-        console.log "---------callback--------"
-        $scope.socketLog += ""+data.username+" : "+data.message+"\n" 
-        refreshScroll(myEl)
-        $scope.$apply()
-        return 
-    
     
     $scope.sendToAll = (msg) ->
-        console.log 'sendToAll click'
         Scloud.publish 'log_list', {
             id: Scloud.getId()
             message: msg
@@ -118,8 +115,6 @@ angular.module('socAngApp')
                 if err
                     console.log 'publish to '+channel+' channel error'+err
                 return
-        
-        console.log 'sendToSocket click: '+channel 
         return
         
     return
@@ -129,13 +124,11 @@ refreshScroll= (element)->
     return
 
 goToMainScreen = (scope)->
-    console.log 'goToMainScreen'
     scope.login_board = false
     scope.$apply()
     return
     
 goToLoginScreen = (scope)->
-    console.log 'goToLoginScreen'
     scope.login_board = true
     scope.$apply()
     return
